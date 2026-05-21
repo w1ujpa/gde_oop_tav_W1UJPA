@@ -62,7 +62,7 @@ class Szemelyauto(Auto):
     def leiras(self) -> str:
         return f"Szemelyauto  {self.tipus}  ({self.__ferohely} ferohely)"
 
-    class Teherauto(Auto):
+class Teherauto(Auto):
         def __init__(self, rendszam: str, tipus: str, berleti_dij: float, teherbiras_kg: float):
             super().__init__(rendszam, tipus, berleti_dij)
             self.__teherbiras_kg = teherbiras_kg
@@ -162,3 +162,26 @@ class Autokolcsonzo:
             if berles.auto.rendszam == rendszam and berles.datum == datum:
                 return True
         return False
+
+
+def rendszer_inicializalasa() -> Autokolcsonzo:
+    kolcsonzo = Autokolcsonzo("Budapest AutoBerlo Kft.")
+
+    a1 = Szemelyauto("ABC-123", "Toyota Corolla",   12_000, 5)
+    a2 = Szemelyauto("XYZ-456", "BMW 3-as",         25_000, 5)
+    a3 = Teherauto ("TRK-789", "Mercedes Sprinter",  35_000, 1500)
+
+    for auto in (a1, a2, a3):
+        kolcsonzo.auto_hozzaadasa(auto)
+
+    today = date.today()
+    adatok = [
+        ("ABC-123", "Kiss Peter",   today + timedelta(days=1)),
+        ("XYZ-456", "Nagy Anna",    today + timedelta(days=2)),
+        ("TRK-789", "Szabo Gabor",  today + timedelta(days=3)),
+        ("ABC-123", "Toth Maria",   today + timedelta(days=5)),
+    ]
+    for rendszam, nev, datum in adatok:
+        kolcsonzo.auto_berlese(rendszam, nev, datum)
+
+    return kolcsonzo
