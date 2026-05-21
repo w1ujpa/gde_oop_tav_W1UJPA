@@ -73,3 +73,32 @@ class Szemelyauto(Auto):
 
         def leiras(self) -> str:
             return f"Teherauto  {self.tipus}  ({self.__teherbiras_kg} kg)"
+
+class Berles:
+    def __init__(self, auto: Auto, berlo_neve: str, datum: date):
+        self.__auto = auto
+        self.__berlo_neve = berlo_neve
+        self.__datum = datum
+
+    @property
+    def auto(self) -> Auto:
+        return self.__auto
+
+    @property
+    def berlo_neve(self) -> str:
+        return self.__berlo_neve
+
+    @property
+    def datum(self) -> date:
+        return self.__datum
+
+    def ar(self) -> float:
+        return self.__auto.berleti_dij
+
+    def __str__(self) -> str:
+        return (
+            f"Berlo: {self.__berlo_neve} | "
+            f"Datum: {self.__datum} | "
+            f"{self.__auto} | "
+            f"Fizetendo: {self.ar()} Ft"
+        )
