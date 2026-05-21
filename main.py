@@ -402,3 +402,96 @@ def _berles_tabla(kolcsonzo: Autokolcsonzo) -> list[tuple[int, "Berles"]]:
 
     console.print(t)
     return sorok
+
+def kepernyo_berlese(kolcsonzo: Autokolcsonzo):
+    clear()
+    console.print(Panel("[bold]Auto berlese[/bold]", style=ACCENT, padding=(0, 2)))
+    _flotta_tabla(kolcsonzo)
+    console.print(f"  [grey50]Valasszon sorszam (pl. 1) vagy rendszam (pl. ABC-123) alapjan.[/grey50]")
+    console.print()
+
+    autok = kolcsonzo.autok_listazasa()
+    auto_map = {a.rendszam: a for a in autok}
+    rendszam = None
+    while True:
+        valasz = beolvas("Auto sorszama vagy rendszama").upper()
+        if valasz.isdigit():
+            idx = int(valasz) - 1
+            if 0 <= idx < len(autok):
+                rendszam = autok[idx].rendszam
+                break
+            else:
+                console.print(f"  [red]Hiba:[/red] Ervenytelen sorszam. Valasszon 1 es {len(autok)} kozott.")
+        elif valasz in auto_map:
+            rendszam = valasz
+            break
+        else:
+            console.print(f"  [red]Hiba:[/red] Nem talalhato auto [bold]{valasz!r}[/bold] rendszammal.")
+
+    berlo = beolvas("Berlo neve")
+
+    datum = datum_valaszto(f"Mikor szeretne berelni? ({rendszam})")
+    if datum is None:
+        return   # visszalepett
+
+    try:
+        ar = kolcsonzo.auto_berlese(rendszam, berlo, datum)
+        siker(f"{rendszam} sikeresen berelve  |  {datum}  |  Fizetendo: [bold]{ar:,.0f} Ft[/bold]")
+    except ValueError as e:
+        hiba(str(e))
+def kepernyo_lemondas(kolcsonzo: Autokolcsonzo):
+    clear()
+    console.print(Panel("[bold]Berles lemondasa[/bold]", style=ACCENT, padding=(0, 2)))
+
+    sorok = _berles_tabla(kolcsonzo)
+    if not sorok:
+        enter_folytatas()
+        return
+
+    console.print(f"\n  [{DIM}]Irja be a lemondani kivant berles sorszamat, vagy 0 = vissza.[/{DIM}]")
+
+    while True:
+        valasz = IntPrompt.ask(f"  [{ACCENT}]Sorszam[/{ACCENT}]")
+        if valasz == 0:
+            return
+        if 1 <= valasz <= len(sorok):
+            _, kivalasztott = sorok[valasz - 1]
+            break
+        console.print(f"  [{WARN}]Ervenytelen sorszam. Kerem 1 es {len(sorok)} kozott.[/{WARN}]")
+
+    console.print(
+        f"\n  Biztosan lemondja?  "
+        f"[bold]{kivalasztott.berlo_neve}[/bold]  |  "
+        f"[bold]{kivalasztott.auto.rendszam}[/bold]  |  "
+        f"[bold]{kivalasztott.datum}[/bold]"
+    )
+    megerosit = Prompt.ask(
+        f"  [{WARN}]Megerosites (i = igen, barmi mas = vissza)[/{WARN}]",
+        default="n"
+    ).strip().lower()
+
+    if megerosit != "i":
+        console.print(f"  [{DIM}]Lemondas megszakitva.[/{DIM}]")
+        enter_folytatas()
+        return
+
+    try:
+        kolcsonzo.berles_lemondasa(kivalasztott.auto.rendszam, kivalasztott.datum)
+        siker("A berles sikeresen lemondva.")
+    except ValueError as e:
+        hiba(str(e))
+
+
+def kepernyo_berlesek(kolcsonzo: Autokolcsonzo):
+    clear()
+    console.print(Panel("[bold]Aktualis berlesek[/bold]", style=ACCENT, padding=(0, 2)))
+    _berles_tabla(kolcsonzo)
+    enter_folytatas()
+
+
+def kepernyo_flotta(kolcsonzo: Autokolcsonzo):
+    clear()
+    console.print(Panel("[bold]Flotta[/bold]", style=ACCENT, padding=(0, 2)))
+    _flotta_tabla(kolcsonzo)
+    enter_folytatas()
+
