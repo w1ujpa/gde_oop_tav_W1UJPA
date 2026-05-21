@@ -354,3 +354,51 @@ def _naptar_rajzol(kivalasztott: date):
     console.print(
         f"  Kivalasztva: [bold {ACCENT}]{kivalasztott.isoformat()}[/bold {ACCENT}]"
     )
+def _flotta_tabla(kolcsonzo: Autokolcsonzo):
+    autok = kolcsonzo.autok_listazasa()
+    if not autok:
+        console.print(f"  [{DIM}]Nincs auto a rendszerben.[/{DIM}]")
+        return
+
+    t = Table(box=box.SIMPLE_HEAVY, show_header=True,
+              header_style=f"bold {ACCENT}", show_edge=True, padding=(0, 1))
+    t.add_column("#",             style=DIM,         justify="right", width=3)
+    t.add_column("Rendszam",      style="bold white")
+    t.add_column("Leiras",        style="white")
+    t.add_column("Dij (Ft/nap)", style=ACCENT,       justify="right")
+
+    for i, a in enumerate(autok, 1):
+        t.add_row(str(i), a.rendszam, a.leiras(), f"{a.berleti_dij:,.0f}")
+
+    console.print(t)
+def _berles_tabla(kolcsonzo: Autokolcsonzo) -> list[tuple[int, "Berles"]]:
+    """Kirajzolja a bérlés táblát, visszaadja a sorszám->Berles párosokat."""
+    berlesek = kolcsonzo.berlesek_listazasa()
+    if not berlesek:
+        console.print(f"\n  [{DIM}]Jelenleg nincs aktiv berles.[/{DIM}]\n")
+        return []
+
+    t = Table(box=box.SIMPLE_HEAVY, show_header=True,
+              header_style=f"bold {ACCENT}", show_edge=True, padding=(0, 1))
+    t.add_column("#",        style=DIM,        justify="right", width=3)
+    t.add_column("Berlo",    style="bold white")
+    t.add_column("Rendszam", style="white")
+    t.add_column("Datum",    style="white")
+    t.add_column("Dij (Ft)", style=ACCENT,     justify="right")
+
+    today = date.today()
+    sorok = []
+    for i, b in enumerate(berlesek, 1):
+        days = (b.datum - today).days
+        if days == 1:
+            datum_str = f"[{OK}]{b.datum}  (holnap)[/{OK}]"
+        elif days <= 3:
+            datum_str = f"[{WARN}]{b.datum}  ({days} nap mulva)[/{WARN}]"
+        else:
+            datum_str = str(b.datum)
+
+        t.add_row(str(i), b.berlo_neve, b.auto.rendszam, datum_str, f"{b.ar():,.0f}")
+        sorok.append((i, b))
+
+    console.print(t)
+    return sorok
