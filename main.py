@@ -49,3 +49,15 @@ class Auto(ABC):
             f"{self.leiras()} | Rendszam: {self.__rendszam} "
             f"| Dij: {self.__berleti_dij} Ft/nap"
         )
+
+class Szemelyauto(Auto):
+    def __init__(self, rendszam: str, tipus: str, berleti_dij: float, ferohely: int):
+        super().__init__(rendszam, tipus, berleti_dij)
+        self.__ferohely = ferohely
+
+    @property
+    def ferohely(self) -> int:
+        return self.__ferohely
+
+    def leiras(self) -> str:
+        return f"Szemelyauto  {self.tipus}  ({self.__ferohely} ferohely)"
