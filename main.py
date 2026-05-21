@@ -1,16 +1,51 @@
-# This is a sample Python script.
+from abc import ABC, abstractmethod
+from datetime import date, timedelta
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+from rich.prompt import Prompt, IntPrompt
+from rich.text import Text
+from rich.columns import Columns
+from rich import box
+console = Console()
 
+class Auto(ABC):
+    def __init__(self, rendszam: str, tipus: str, berleti_dij: float):
+        self.__rendszam = rendszam
+        self.__tipus = tipus
+        self.__berleti_dij = berleti_dij
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+    @property
+    def rendszam(self) -> str:
+        return self.__rendszam
 
+    @property
+    def tipus(self) -> str:
+        return self.__tipus
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+    @tipus.setter
+    def tipus(self, ertek: str):
+        if not ertek:
+            raise ValueError("A tipus nem lehet ures!")
+        self.__tipus = ertek
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    @property
+    def berleti_dij(self) -> float:
+        return self.__berleti_dij
+
+    @berleti_dij.setter
+    def berleti_dij(self, ertek: float):
+        if ertek < 0:
+            raise ValueError("A berleti dij nem lehet negativ!")
+        self.__berleti_dij = ertek
+
+    @abstractmethod
+    def leiras(self) -> str:
+        pass
+
+    def __str__(self) -> str:
+        return (
+            f"{self.leiras()} | Rendszam: {self.__rendszam} "
+            f"| Dij: {self.__berleti_dij} Ft/nap"
+        )
