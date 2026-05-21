@@ -185,3 +185,172 @@ def rendszer_inicializalasa() -> Autokolcsonzo:
         kolcsonzo.auto_berlese(rendszam, nev, datum)
 
     return kolcsonzo
+
+ACCENT  = "bright_cyan"
+DIM     = "grey50"
+OK      = "green"
+ERR     = "red"
+WARN    = "yellow"
+
+MENU_ITEMS = [
+    ("1", "Auto berlese"),
+    ("2", "Berles lemondasa"),
+    ("3", "Berlesek listazasa"),
+    ("4", "Flotta megtekintese"),
+    ("0", "Kilepes"),
+]
+
+def clear():
+    console.clear()
+
+
+def header(kolcsonzo: Autokolcsonzo):
+    content = Text.assemble(
+        Text(kolcsonzo.nev, style="bold bright_white"),
+        "\n",
+        Text(f"Mai nap: {date.today().isoformat()}", style=DIM),
+    )
+    console.print(Panel(content, style=ACCENT, padding=(0, 2)))
+
+
+def siker(uzenet: str):
+    console.print(f"\n  [{OK}]Siker:[/{OK}] {uzenet}")
+    enter_folytatas()
+
+
+def hiba(uzenet: str):
+    console.print(f"\n  [{ERR}]Hiba:[/{ERR}] {uzenet}")
+    enter_folytatas()
+
+
+def enter_folytatas():
+    Prompt.ask(f"\n  [{DIM}]Nyomjon Entert a folytatáshoz[/{DIM}]", default="")
+
+
+def beolvas(felirat: str) -> str:
+    while True:
+        ertek = Prompt.ask(f"  [{ACCENT}]{felirat}[/{ACCENT}]").strip()
+        if ertek:
+            return ertek
+        console.print(f"  [{WARN}]Ez a mezo nem maradhat ures.[/{WARN}]")
+
+NAPOK  = ["H", "K", "Sz", "Cs", "P", "Sz", "V"]
+HONAPOK = ["", "jan", "feb", "mar", "apr", "maj", "jun",
+           "jul", "aug", "sze", "okt", "nov", "dec"]
+
+
+def _honap_napjai(ev: int, honap: int) -> int:
+    if honap == 12:
+        return (date(ev + 1, 1, 1) - date(ev, 12, 1)).days
+    return (date(ev, honap + 1, 1) - date(ev, honap, 1)).days
+
+
+def datum_valaszto(cim: str = "Valasszon datumot") -> date | None:
+    """
+    havi naptár.
+    L/J: nap  |  N/P: hónap  |  Enter: választ  |  X: mégse
+    """
+    kivalasztott = date.today() + timedelta(days=1)
+
+    while True:
+        clear()
+        console.print(Panel(f"[bold]{cim}[/bold]", style=ACCENT, padding=(0, 2)))
+        _naptar_rajzol(kivalasztott)
+        console.print(
+            f"\n  [{DIM}]"
+            f"L/J = nap    N/P = honap    Enter = valaszt    X = vissza"
+            f"[/{DIM}]"
+        )
+
+        parancs = Prompt.ask(f"\n  [{ACCENT}]Navigacio[/{ACCENT}]", default="").strip().upper()
+
+        ev, h, nap = kivalasztott.year, kivalasztott.month, kivalasztott.day
+        max_nap = _honap_napjai(ev, h)
+
+        if parancs in ("", "ENTER"):
+            if kivalasztott < date.today():
+                console.print(f"  [{WARN}]Multbeli datum nem valaszthato.[/{WARN}]")
+                enter_folytatas()
+                continue
+            return kivalasztott
+
+        elif parancs == "X":
+            return None
+
+        elif parancs == "L":
+            kivalasztott -= timedelta(days=1)
+
+        elif parancs == "J":
+            kivalasztott += timedelta(days=1)
+
+        elif parancs == "N":
+            if h == 1:
+                kivalasztott = date(ev - 1, 12, min(nap, _honap_napjai(ev - 1, 12)))
+            else:
+                kivalasztott = date(ev, h - 1, min(nap, _honap_napjai(ev, h - 1)))
+
+        elif parancs == "P":
+            if h == 12:
+                kivalasztott = date(ev + 1, 1, min(nap, _honap_napjai(ev + 1, 1)))
+            else:
+                kivalasztott = date(ev, h + 1, min(nap, _honap_napjai(ev, h + 1)))
+
+        else:
+            try:
+                szam = int(parancs)
+                if 1 <= szam <= max_nap:
+                    kivalasztott = date(ev, h, szam)
+                else:
+                    console.print(f"  [{WARN}]Ervenytelen nap: {szam}[/{WARN}]")
+            except ValueError:
+                console.print(f"  [{WARN}]Ismeretlen parancs.[/{WARN}]")
+
+
+def _naptar_rajzol(kivalasztott: date):
+    ev, h = kivalasztott.year, kivalasztott.month
+    max_nap = _honap_napjai(ev, h)
+    today = date.today()
+
+    console.print()
+    console.print(f"    [bold bright_white]{HONAPOK[h].upper()} {ev}[/bold bright_white]")
+    console.print()
+
+    fejlec = Text("   ")
+    for nev in NAPOK:
+        fejlec.append(f" {nev}  ", style=DIM)
+    console.print(fejlec)
+    console.print()
+
+    elso = date(ev, h, 1).weekday()   # 0=H … 6=V
+    aktualis_nap = 1
+
+    while aktualis_nap <= max_nap:
+        sor = Text("   ")
+
+        if aktualis_nap == 1:
+            sor.append("    " * elso)
+
+        while aktualis_nap <= max_nap:
+            nap_datum = date(ev, h, aktualis_nap)
+            het_napja = nap_datum.weekday()
+            szam = f"{aktualis_nap:2d} "
+
+            if nap_datum == kivalasztott:
+                sor.append(f" {szam}", style="bold black on bright_cyan")
+            elif nap_datum == today:
+                sor.append(f" {szam}", style=f"bold {WARN}")
+            elif nap_datum < today:
+                sor.append(f" {szam}", style=DIM)
+            else:
+                sor.append(f" {szam}", style="white")
+
+            aktualis_nap += 1
+            if het_napja == 6:
+                break
+
+        console.print(sor)
+
+    console.print()
+    console.print(
+        f"  Kivalasztva: [bold {ACCENT}]{kivalasztott.isoformat()}[/bold {ACCENT}]"
+    )
