@@ -495,3 +495,50 @@ def kepernyo_flotta(kolcsonzo: Autokolcsonzo):
     _flotta_tabla(kolcsonzo)
     enter_folytatas()
 
+def menu_panel():
+    t = Table.grid(padding=(0, 3))
+    t.add_column(style=f"bold {ACCENT}", justify="right")
+    t.add_column(style="white")
+    for key, label in MENU_ITEMS:
+        t.add_row(f"[{key}]", label)
+    console.print(Panel(t, title="[bold]Menu[/bold]", style=DIM, padding=(1, 3)))
+
+
+def valaszt() -> str:
+    return Prompt.ask(
+        f"\n  [{ACCENT}]Valasszon[/{ACCENT}]",
+        choices=[k for k, _ in MENU_ITEMS],
+        show_choices=False,
+    )
+
+
+def main():
+    kolcsonzo = rendszer_inicializalasa()
+
+    while True:
+        clear()
+        header(kolcsonzo)
+        console.print()
+        menu_panel()
+
+        valasz = valaszt()
+
+        if valasz == "1":
+            kepernyo_berlese(kolcsonzo)
+        elif valasz == "2":
+            kepernyo_lemondas(kolcsonzo)
+        elif valasz == "3":
+            kepernyo_berlesek(kolcsonzo)
+        elif valasz == "4":
+            kepernyo_flotta(kolcsonzo)
+        elif valasz == "0":
+            clear()
+            console.print(Panel(
+                Text("Viszlat!", style="bold bright_white", justify="center"),
+                style=ACCENT, padding=(1, 4)
+            ))
+            break
+
+
+if __name__ == "__main__":
+    main()
