@@ -102,3 +102,63 @@ class Berles:
             f"{self.__auto} | "
             f"Fizetendo: {self.ar()} Ft"
         )
+
+
+class Autokolcsonzo:
+    def __init__(self, nev: str):
+        self.__nev = nev
+        self.__autok: list[Auto] = []
+        self.__berlesek: list[Berles] = []
+
+    @property
+    def nev(self) -> str:
+        return self.__nev
+
+    def auto_hozzaadasa(self, auto: Auto):
+        self.__autok.append(auto)
+
+    def auto_berlese(self, rendszam: str, berlo_neve: str, datum: date) -> float:
+        if not berlo_neve.strip():
+            raise ValueError("A berlo neve nem lehet ures!")
+        if datum < date.today():
+            raise ValueError("A berlesi datum nem lehet multbeli!")
+
+        auto = self.__auto_keresese(rendszam)
+        if auto is None:
+            raise ValueError(f"Nem talalhato auto '{rendszam}' rendszammal!")
+
+        if self.__auto_foglalt_e(rendszam, datum):
+            raise ValueError(
+                f"Az auto ({rendszam}) mar foglalt erre a napra ({datum})!"
+            )
+
+        berles = Berles(auto, berlo_neve, datum)
+        self.__berlesek.append(berles)
+        return berles.ar()
+
+    def berles_lemondasa(self, rendszam: str, datum: date) -> bool:
+        for berles in self.__berlesek:
+            if berles.auto.rendszam == rendszam and berles.datum == datum:
+                self.__berlesek.remove(berles)
+                return True
+        raise ValueError(
+            f"Nincs ilyen berles: rendszam={rendszam}, datum={datum}"
+        )
+
+    def berlesek_listazasa(self) -> list[Berles]:
+        return list(self.__berlesek)
+
+    def autok_listazasa(self) -> list[Auto]:
+        return list(self.__autok)
+
+    def __auto_keresese(self, rendszam: str):
+        for auto in self.__autok:
+            if auto.rendszam == rendszam:
+                return auto
+        return None
+
+    def __auto_foglalt_e(self, rendszam: str, datum: date) -> bool:
+        for berles in self.__berlesek:
+            if berles.auto.rendszam == rendszam and berles.datum == datum:
+                return True
+        return False
